@@ -36,6 +36,11 @@ uvx --from panda-mcp-client get-panda-token
 
 Follow the browser prompt. The token is saved to `~/.panda_id_token`.
 
+> **Re-run this command roughly once a month.** The proxy refreshes the short-lived id\_token
+> automatically, but it relies on a refresh token that expires after ~1 month. Once the refresh
+> token expires the MCP connection will silently stop working — error messages are only visible
+> in the Claude Desktop logs, not in the chat interface.
+
 ### 2. Configure your LLM client
 
 **Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
