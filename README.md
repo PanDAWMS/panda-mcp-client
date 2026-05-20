@@ -43,7 +43,13 @@ Follow the browser prompt. The token is saved to `~/.panda_id_token`.
 
 ### 2. Configure your LLM client
 
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+**Claude Desktop**
+
+| Platform | Config file |
+|---|---|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Linux | `~/.config/Claude/claude_desktop_config.json` |
 
 ```json
 {
@@ -56,7 +62,12 @@ Follow the browser prompt. The token is saved to `~/.panda_id_token`.
 }
 ```
 
-**LM Studio** (`mcp.json`):
+**LM Studio**
+
+| Platform | Config file |
+|---|---|
+| macOS / Linux | `~/.lmstudio/mcp.json` |
+| Windows | `%USERPROFILE%\.lmstudio\mcp.json` |
 
 ```json
 {
