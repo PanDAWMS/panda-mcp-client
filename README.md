@@ -2,6 +2,10 @@
 
 PanDA MCP client tools for Claude Desktop, LM Studio, and similar LLM clients.
 
+> **Disclaimer:** This is a proof-of-concept. No production-level support is provided at this time.
+>
+> The MCP server runs inside the CERN network. You must be on the CERN network or connected via a tunnel such as [eduVPN](https://eduvpn.docs.cern.ch/) (or your preferred tunneling mechanism) for the proxy to reach it.
+
 ## Tools
 
 | Command | Purpose |
@@ -19,6 +23,10 @@ This proxy refreshes the token transparently on every request.
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Quick start
+
+### 0. Install uv
+
+Follow the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
 ### 1. Get a token
 
