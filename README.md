@@ -13,10 +13,6 @@ PanDA MCP client tools for Claude Desktop, LM Studio, and similar LLM clients.
 | `get-panda-token` | Device-flow OIDC login — run once to obtain and cache a token |
 | `panda-mcp-proxy` | stdio↔HTTPS/SSE proxy with automatic token refresh |
 
-The proxy solves the core limitation of the older `panda_mcp_wrapper.sh`: that script
-bakes the token into `mcp-remote` at startup, so sessions break after 15 minutes.
-This proxy refreshes the token transparently on every request.
-
 ## Requirements
 
 - Python 3.10+
