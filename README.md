@@ -69,6 +69,9 @@ Follow the browser prompt. The token is saved to `~/.panda_id_token`.
 }
 ```
 
+For LM Studio, model and context length settings matter. The screenshot below shows a working configuration. Note that smaller context lengths can be insufficient for MCP responses from PanDA. Other values (e.g. GPU layers, memory settings) are specific to the hardware used and may need to be adjusted for your machine.
+
+![LM Studio model configuration](docs/images/lm_studio_model.png)
 ## Environment variables
 
 All variables are optional; the defaults match those of `panda_mcp_wrapper.sh`.
@@ -81,6 +84,33 @@ All variables are optional; the defaults match those of `panda_mcp_wrapper.sh`.
 | `MCP_URL` | `https://aipanda120.cern.ch:8443/mcp/` | Remote MCP server URL |
 | `SSL_CERT_FILE` | — | Path to CA bundle (custom CAs) |
 | `REQUESTS_CA_BUNDLE` | — | Alternative to `SSL_CERT_FILE` |
+
+The CERN MCP server uses a certificate that is not in the default system trust store.
+You must provide a CA bundle via `SSL_CERT_FILE`, otherwise the connection will be rejected.
+
+To build the bundle, download the CERN CA certificates and merge them with your system's existing CAs:
+
+```bash
+curl -o cern-root-ca.pem https://cafiles.cern.ch/cafiles/certificates/CERN%20Root%20Certification%20Authority%202.crt
+curl -o cern-grid-ca.pem https://cafiles.cern.ch/cafiles/certificates/CERN%20Grid%20Certification%20Authority.crt
+cat $(python3 -c "import certifi; print(certifi.where())") cern-root-ca.pem cern-grid-ca.pem > ~/all-certs.pem
+```
+
+Then point `SSL_CERT_FILE` at the resulting file. Example LLM client configuration:
+
+```json
+{
+  "mcpServers": {
+    "aipanda120-mcp": {
+      "command": "uvx",
+      "args": ["--from", "panda-mcp-client", "panda-mcp-proxy"],
+      "env": {
+        "SSL_CERT_FILE": "/path/to/your/ca-bundle.pem"
+      }
+    }
+  }
+}
+```
 
 ## Token refresh
 
