@@ -98,9 +98,16 @@ You must provide a CA bundle via `SSL_CERT_FILE`, otherwise the connection will 
 To build the bundle, download the CERN CA certificates and merge them with your system's existing CAs:
 
 ```bash
-curl -o cern-root-ca.pem https://cafiles.cern.ch/cafiles/certificates/CERN%20Root%20Certification%20Authority%202.crt
-curl -o cern-grid-ca.pem https://cafiles.cern.ch/cafiles/certificates/CERN%20Grid%20Certification%20Authority.crt
+curl -o cern-root-ca.crt https://ca.cern.ch/cafiles/certificates/CERN%20Root%20Certification%20Authority%202.crt
+openssl x509 -inform DER -in cern-root-ca.crt -out cern-root-ca.pem
+curl -o cern-grid-ca.pem https://ca.cern.ch/cafiles/certificates/CERN%20Grid%20Certification%20Authority\(1\).crt
 cat $(python3 -c "import certifi; print(certifi.where())") cern-root-ca.pem cern-grid-ca.pem > ~/all-certs.pem
+
+# YOU CAN TEST THE NEW BUNDLE WORKS. YOU SHOULD NOT SEE ERRORS ABOUT UNTRUSTED CERTS. THE WARNINGS BELOW ARE EXPECTED.
+export SSL_CERT_FILE=~/all-certs.pem
+uvx --system-certs --from panda-mcp-client panda-mcp-proxy
+2026-06-05 16:37:01,482 [panda_mcp_proxy] WARNING Opening server-push SSE channel to https://aipanda120.cern.ch:8443/mcp/
+2026-06-05 16:37:01,583 [panda_mcp_proxy] WARNING Server does not support GET SSE push (400) — skipping.
 ```
 
 Then point `SSL_CERT_FILE` at the resulting file. Example LLM client configuration:
