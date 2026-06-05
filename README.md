@@ -102,8 +102,10 @@ curl -o cern-root-ca.crt https://ca.cern.ch/cafiles/certificates/CERN%20Root%20C
 openssl x509 -inform DER -in cern-root-ca.crt -out cern-root-ca.pem
 curl -o cern-grid-ca.pem https://ca.cern.ch/cafiles/certificates/CERN%20Grid%20Certification%20Authority\(1\).crt
 cat $(python3 -c "import certifi; print(certifi.where())") cern-root-ca.pem cern-grid-ca.pem > ~/all-certs.pem
+````
 
-# YOU CAN TEST THE NEW BUNDLE WORKS. YOU SHOULD NOT SEE ERRORS ABOUT UNTRUSTED CERTS. THE WARNINGS BELOW ARE EXPECTED.
+```bash
+# If you want to test that the bundle works, you can run the below. The warnings below are expected, but you should not see any SSL errors.
 export SSL_CERT_FILE=~/all-certs.pem
 uvx --system-certs --from panda-mcp-client panda-mcp-proxy
 2026-06-05 16:37:01,482 [panda_mcp_proxy] WARNING Opening server-push SSE channel to https://aipanda120.cern.ch:8443/mcp/
