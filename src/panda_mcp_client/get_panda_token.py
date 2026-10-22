@@ -88,7 +88,6 @@ def main():
     print("==> Polling for token...")
     elapsed = 0
     id_token = None
-    token_expires_in = None
 
     while elapsed < expires_in:
         try:
