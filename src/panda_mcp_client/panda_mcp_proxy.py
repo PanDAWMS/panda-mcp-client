@@ -30,6 +30,13 @@ Environment variables (all optional, same defaults as panda_mcp_wrapper.sh):
     MCP_URL          Remote MCP server URL     (default: https://pandamcp.cern.ch/mcp/)
     SSL_CERT_FILE    Path to CA bundle file    (optional, for custom CAs)
     REQUESTS_CA_BUNDLE  Alternative to SSL_CERT_FILE
+
+Service accounts (client_credentials flow instead of the device flow and TOKEN_FILE):
+    PANDA_CLIENT_ID           Client ID of the service account
+    PANDA_CLIENT_SECRET       Client secret of the service account
+    PANDA_CLIENT_SECRET_FILE  File containing the client secret (alternative to PANDA_CLIENT_SECRET)
+    PANDA_TOKEN_SCOPE         Space-separated scopes to request (optional)
+    PANDA_TOKEN_AUDIENCE      Audience to request (optional)
 """
 
 import asyncio
@@ -58,6 +65,13 @@ PANDA_SERVER = os.environ.get("PANDA_SERVER", "https://pandaserver.cern.ch:25443
 VO = os.environ.get("VO", "atlas")
 TOKEN_FILE = pathlib.Path(os.environ.get("TOKEN_FILE", pathlib.Path.home() / ".panda_id_token"))
 MCP_URL = os.environ.get("MCP_URL", "https://pandamcp.cern.ch/mcp/")
+
+# Service account credentials; when PANDA_CLIENT_ID is set the client_credentials flow is used
+CLIENT_ID = os.environ.get("PANDA_CLIENT_ID", "")
+CLIENT_SECRET = os.environ.get("PANDA_CLIENT_SECRET", "")
+CLIENT_SECRET_FILE = os.environ.get("PANDA_CLIENT_SECRET_FILE", "")
+TOKEN_SCOPE = os.environ.get("PANDA_TOKEN_SCOPE", "")
+TOKEN_AUDIENCE = os.environ.get("PANDA_TOKEN_AUDIENCE", "")
 
 # Refresh the token this many seconds before it actually expires
 TOKEN_REFRESH_MARGIN = 300
@@ -171,6 +185,53 @@ class TokenManager:
             log.error("Refresh response missing id_token: %s", token_resp.get("error", "unknown"))
         return id_token
 
+    @staticmethod
+    def _client_secret() -> str:
+        if CLIENT_SECRET:
+            return CLIENT_SECRET
+        if CLIENT_SECRET_FILE:
+            try:
+                return pathlib.Path(CLIENT_SECRET_FILE).read_text().strip()
+            except Exception as exc:
+                raise RuntimeError(f"Could not read PANDA_CLIENT_SECRET_FILE: {exc}") from exc
+        raise RuntimeError("PANDA_CLIENT_ID is set but neither PANDA_CLIENT_SECRET nor PANDA_CLIENT_SECRET_FILE is.")
+
+    async def _do_client_credentials(self) -> tuple[str, float]:
+        """Get an access token for a service account. Returns ('', 0.0) on failure.
+
+        The token is kept in memory only, since a new one can be requested at any time.
+        """
+        ssl_ctx = _build_ssl_context()
+        loop = asyncio.get_event_loop()
+        token_request = {
+            "grant_type": "client_credentials",
+            "client_id": CLIENT_ID,
+            "client_secret": self._client_secret(),
+        }
+        if TOKEN_SCOPE:
+            token_request["scope"] = TOKEN_SCOPE
+        if TOKEN_AUDIENCE:
+            token_request["audience"] = TOKEN_AUDIENCE
+
+        try:
+            auth_cfg = await loop.run_in_executor(None, self._http_get_json, f"{PANDA_SERVER}/auth/{VO}_auth_config.json", ssl_ctx)
+            oidc_cfg = await loop.run_in_executor(None, self._http_get_json, auth_cfg["oidc_config_url"], ssl_ctx)
+            token_resp = await loop.run_in_executor(None, self._http_post_form, oidc_cfg["token_endpoint"], token_request, ssl_ctx)
+        except Exception as exc:
+            log.error("Client credentials token request failed: %s", exc)
+            return "", 0.0
+
+        access_token = token_resp.get("access_token", "")
+        if not access_token:
+            log.error("Client credentials response missing access_token: %s", token_resp.get("error", "unknown"))
+            return "", 0.0
+        # fall back to expires_in for tokens that are not JWTs or have no exp claim
+        exp = self._decode_exp(access_token)
+        if not exp and token_resp.get("expires_in"):
+            exp = time.time() + int(token_resp["expires_in"])
+        log.warning("Service account access token obtained.")
+        return access_token, exp
+
     # ── public API ────────────────────────────────────────────────────────────
 
     async def get(self) -> str:
@@ -181,6 +242,15 @@ class TokenManager:
             # In-memory token still good
             if self._id_token and self._exp - now > TOKEN_REFRESH_MARGIN:
                 return self._id_token
+
+            # Service account: request a new token instead of using the token file
+            if CLIENT_ID:
+                token, exp = await self._do_client_credentials()
+                if token:
+                    self._id_token = token
+                    self._exp = exp
+                    return token
+                raise RuntimeError("Could not obtain a token with the service account credentials.")
 
             # Try token file
             data = self._load_file()

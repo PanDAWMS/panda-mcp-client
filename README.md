@@ -128,6 +128,40 @@ Then point `SSL_CERT_FILE` at the resulting file. Example LLM client configurati
 }
 ```
 
+## Service accounts
+
+Instead of the device flow, the proxy can authenticate as a service account with a client ID
+and secret (OAuth2 client_credentials flow). In that case `get-panda-token` and `TOKEN_FILE`
+are not used: the proxy requests a new access token whenever the current one is about to expire.
+
+| Variable | Description |
+|---|---|
+| `PANDA_CLIENT_ID` | Client ID of the service account. Enables the client_credentials flow |
+| `PANDA_CLIENT_SECRET` | Client secret of the service account |
+| `PANDA_CLIENT_SECRET_FILE` | File containing the client secret (alternative to `PANDA_CLIENT_SECRET`) |
+| `PANDA_TOKEN_SCOPE` | Space-separated scopes to request (optional) |
+| `PANDA_TOKEN_AUDIENCE` | Audience to request (optional) |
+
+The service account must be registered on the PanDA server side, otherwise its tokens are rejected.
+
+```json
+{
+  "mcpServers": {
+    "panda-mcp": {
+      "command": "uvx",
+      "args": ["--from", "panda-mcp-client", "panda-mcp-proxy"],
+      "env": {
+        "PANDA_CLIENT_ID": "<client id>",
+        "PANDA_CLIENT_SECRET_FILE": "/path/to/client_secret",
+        "SSL_CERT_FILE": "/path/to/your/ca-bundle.pem"
+      }
+    }
+  }
+}
+```
+
+Prefer `PANDA_CLIENT_SECRET_FILE` (readable only by you) over putting the secret in the LLM client config.
+
 ## Token refresh
 
 `panda-mcp-proxy` refreshes the token automatically using the `refresh_token` stored
