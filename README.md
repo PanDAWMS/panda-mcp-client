@@ -88,7 +88,7 @@ All variables are optional; the defaults match those of `panda_mcp_wrapper.sh`.
 | `PANDA_SERVER` | `https://pandaserver.cern.ch:25443` | PanDA server URL |
 | `VO` | `atlas` | Virtual organisation |
 | `TOKEN_FILE` | `~/.panda_id_token` | Token cache file |
-| `MCP_URL` | `https://aipanda120.cern.ch:8443/mcp/` | Remote MCP server URL |
+| `MCP_URL` | `https://pandamcp:8443/mcp/` | Remote MCP server URL |
 | `SSL_CERT_FILE` | — | Path to CA bundle (custom CAs) |
 | `REQUESTS_CA_BUNDLE` | — | Alternative to `SSL_CERT_FILE` |
 
@@ -108,7 +108,7 @@ cat $(python3 -c "import certifi; print(certifi.where())") cern-root-ca.pem cern
 # If you want to test that the bundle works, you can run the below. The warnings below are expected, but you should not see any SSL errors.
 export SSL_CERT_FILE=~/all-certs.pem
 uvx --system-certs --from panda-mcp-client panda-mcp-proxy
-2026-06-05 16:37:01,482 [panda_mcp_proxy] WARNING Opening server-push SSE channel to https://aipanda120.cern.ch:8443/mcp/
+2026-06-05 16:37:01,482 [panda_mcp_proxy] WARNING Opening server-push SSE channel to https://pandamcp:8443/mcp/
 2026-06-05 16:37:01,583 [panda_mcp_proxy] WARNING Server does not support GET SSE push (400) — skipping.
 ```
 
