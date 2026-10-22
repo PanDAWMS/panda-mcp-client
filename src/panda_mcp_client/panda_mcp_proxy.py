@@ -27,7 +27,7 @@ Environment variables (all optional, same defaults as panda_mcp_wrapper.sh):
     PANDA_SERVER     PanDA server URL          (default: https://pandaserver.cern.ch:25443)
     VO               Virtual organisation      (default: atlas)
     TOKEN_FILE       Path to token cache file  (default: ~/.panda_id_token)
-    MCP_URL          Remote MCP server URL     (default: https://aipandamcp.cern.ch:8443/mcp/)
+    MCP_URL          Remote MCP server URL     (default: https://pandamcp.cern.ch/mcp/)
     SSL_CERT_FILE    Path to CA bundle file    (optional, for custom CAs)
     REQUESTS_CA_BUNDLE  Alternative to SSL_CERT_FILE
 """
@@ -57,7 +57,7 @@ except ImportError:
 PANDA_SERVER = os.environ.get("PANDA_SERVER", "https://pandaserver.cern.ch:25443")
 VO = os.environ.get("VO", "atlas")
 TOKEN_FILE = pathlib.Path(os.environ.get("TOKEN_FILE", pathlib.Path.home() / ".panda_id_token"))
-MCP_URL = os.environ.get("MCP_URL", "https://pandamcp:8443/mcp/")
+MCP_URL = os.environ.get("MCP_URL", "https://pandamcp.cern.ch/mcp/")
 
 # Refresh the token this many seconds before it actually expires
 TOKEN_REFRESH_MARGIN = 300
